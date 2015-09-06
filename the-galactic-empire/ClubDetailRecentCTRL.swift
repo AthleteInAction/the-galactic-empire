@@ -13,15 +13,21 @@ import SwiftyJSON
 class ClubDetailRecentCTRL: UITableViewController {
     
     var club: Club!
-    
-    var games: [JSON] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        dispatch_async(dispatch_get_main_queue()) {
+        Loading.start()
+        
+        club.getRecent { (s) -> Void in
             
-            self.setData()
+            if s {
+                
+                self.tableView.reloadData()
+                
+            }
+            
+            Loading.stop()
             
         }
         
@@ -42,7 +48,15 @@ class ClubDetailRecentCTRL: UITableViewController {
 
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
-        return club.recent.count
+        if let recent = club.recent {
+            
+            return recent.count
+            
+        } else {
+            
+            return 0
+            
+        }
         
     }
     
@@ -50,7 +64,7 @@ class ClubDetailRecentCTRL: UITableViewController {
         
         let cell = tableView.dequeueReusableCellWithIdentifier("cell") as! RecentGameCell
         
-        let match = club.recent[indexPath.row]
+        let match = club.recent![indexPath.row]
         
         cell.club = club
         cell.match = match
@@ -61,59 +75,33 @@ class ClubDetailRecentCTRL: UITableViewController {
         
         cell.whenTXT.text = match.timeAgo
         
-        cell.nameHome.text = match.homeName
-        cell.imgHome.image = match.homeImage
+        cell.nameHome.text = match.home.name
+        cell.imgHome.image = match.home.img
         cell.shotsHome.text = "Shots: \(match.homeShots)"
-        cell.statsHome.tag = match.homeID
+        cell.statsHome.tag = match.home.id
         
-        cell.nameAway.text = match.awayName
-        cell.imgAway.image = match.awayImage
+        cell.nameAway.text = match.away.name
+//        cell.imgAway.image = match.away.img
         cell.shotsAway.text = "Shots: \(match.awayShots)"
-        cell.statsAway.tag = match.awayID
+        cell.statsAway.tag = match.away.id
         
-        
+        if match.away.img == nil {
+            
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+                // do some task
+                dispatch_async(dispatch_get_main_queue(), {
+                    // update some UI
+                    match.away.setImage({ (s) -> Void in
+                        
+                        cell.imgAway.image = match.away.img
+                        
+                    })
+                });
+            });
+            
+        }
         
         return cell
-        
-    }
-    
-    func setData(){
-        
-        Loading.start()
-        
-        let s = "https://www.easports.com/iframe/nhl14proclubs/api/platforms/xbox/clubs/\(club.id)/matches"
-        
-        Alamofire.request(.GET, s.stringByAddingPercentEscapesUsingEncoding(NSUTF8StringEncoding)!, parameters: ["filters":"sum,pretty","match_type":"gameType5","matches_returned":"5"])
-            .responseJSON { request, response, data, error in
-                
-                if error == nil {
-                    
-                    if response?.statusCode == 200 {
-                        
-                        var json = JSON(data!)
-                        
-                        self.club.setRecent(json)
-                        
-                        self.tableView.reloadData()
-                        
-                    } else {
-                        
-                        println("Status Code Error: \(response?.statusCode)")
-                        println(request)
-                        
-                    }
-                    
-                } else {
-                    
-                    println("Error!")
-                    println(error)
-                    println(request)
-                    
-                }
-                
-                Loading.stop()
-                
-        }
         
     }
 

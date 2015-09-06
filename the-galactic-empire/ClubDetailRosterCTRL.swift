@@ -13,13 +13,23 @@ import SwiftyJSON
 class ClubDetailRosterCTRL: UITableViewController {
     
     var club: Club!
-    
-    var roster: [JSON] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        getRoster()
+        Loading.start()
+        
+        club.getRoster { (s) -> Void in
+            
+            if s {
+                
+                self.tableView.reloadData()
+                
+            }
+            
+            Loading.stop()
+            
+        }
         
     }
 
@@ -38,7 +48,15 @@ class ClubDetailRosterCTRL: UITableViewController {
 
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
-        return roster.count
+        if let roster = club.roster {
+            
+            return roster.count
+            
+        } else {
+            
+            return 0
+            
+        }
         
     }
     
@@ -46,7 +64,7 @@ class ClubDetailRosterCTRL: UITableViewController {
         
         var cell = tableView.dequeueReusableCellWithIdentifier("cell") as! ClubDetailRosterCell
         
-        let person = roster[indexPath.row]
+        let person = club.roster![indexPath.row]
         
         cell.playerNameTXT.text = person["personaName"].stringValue
         cell.gamertagTXT.text = person["playername"].stringValue
@@ -82,54 +100,6 @@ class ClubDetailRosterCTRL: UITableViewController {
         }
         
         return cell
-        
-    }
-    
-    func getRoster(){
-        
-        Loading.start()
-        
-        let s = "https://www.easports.com/iframe/nhl14proclubs/api/platforms/xbox/clubs/\(club.id)/membersComplete"
-        
-        Alamofire.request(.GET, s.stringByAddingPercentEscapesUsingEncoding(NSUTF8StringEncoding)!, parameters: nil)
-            .responseJSON { request, response, data, error in
-                
-                if error == nil {
-                    
-                    if response?.statusCode == 200 {
-                        
-                        var json = JSON(data!)
-                        
-                        var tmp: [JSON] = []
-                        
-                        for (key,val) in json["raw"] {
-                            
-                            tmp.append(val)
-                            
-                        }
-                        
-                        self.roster = tmp
-                        
-                        self.tableView.reloadData()
-                        
-                    } else {
-                        
-                        println("Status Code Error: \(response?.statusCode)")
-                        println(request)
-                        
-                    }
-                    
-                } else {
-                    
-                    println("Error!")
-                    println(error)
-                    println(request)
-                    
-                }
-                
-                Loading.stop()
-                
-        }
         
     }
 

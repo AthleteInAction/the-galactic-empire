@@ -51,8 +51,7 @@ class ClubSearchCTRL: UITableViewController,UISearchBarDelegate {
         let club = clubs[indexPath.row]
         
         cell.nameTXT.text = club.name
-        cell.recordTXT.text = "\(club.wins)-\(club.losses)-\(club.otl)"
-        cell.divisionTXT.text = "Division: \(club.division)"
+        cell.recordTXT.text = "\(club.wins!) - \(club.losses) - \(club.otl)"
         
         return cell
         
@@ -65,9 +64,8 @@ class ClubSearchCTRL: UITableViewController,UISearchBarDelegate {
         var nav = UINavigationController()
         
         var vc = self.storyboard?.instantiateViewControllerWithIdentifier("club_detail") as! ClubDetailCTRL
-        
         vc.club = club
-        
+        println(club.name)
         self.navigationController?.pushViewController(vc, animated: true)
         
     }
@@ -100,7 +98,9 @@ class ClubSearchCTRL: UITableViewController,UISearchBarDelegate {
                         
                         for (key,val) in json["raw"] {
                             
-                            let club = Club(json: val)
+                            let club = Club(id: key.toInt()!)
+                            
+                            club.setFromSearch(val)
                             
                             tmp.append(club)
                             

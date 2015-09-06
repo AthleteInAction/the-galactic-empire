@@ -30,5 +30,24 @@ class MenuCTRL: UITableViewController {
         return "Imperial New Order"
         
     }
+    
+    override func tableView(tableView: UITableView, didDeselectRowAtIndexPath indexPath: NSIndexPath) {
+        
+        
+        
+    }
+    
+    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        
+        if segue.identifier == "seg_tge" {
+            
+            var vc = segue.destinationViewController as! ClubDetailCTRL
+            var club = Club(id: 176715)
+            club.name = "THE GALACTIC EMPIRE"
+            vc.club = club
+            
+        }
+        
+    }
 
 }

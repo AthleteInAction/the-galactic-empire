@@ -12,7 +12,7 @@ import SwiftyJSON
 
 class Top100CTRL: UITableViewController {
     
-    var clubs: [JSON] = []
+    var clubs: [Club] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -48,12 +48,12 @@ class Top100CTRL: UITableViewController {
         
         let rank = indexPath.row + 1
         
+        cell.nameTXT.text = club.name
         cell.rankTXT.text = "\(rank)"
-        cell.nameTXT.text = club["clubname"].stringValue
-        cell.ptsTXT.text = club["rank"].stringValue
-        cell.wTXT.text = club["wins"].stringValue
-        cell.lTXT.text = club["losses"].stringValue
-        cell.otlTXT.text = club["ties"].stringValue
+        cell.ptsTXT.text = "\(club.rank)"
+        cell.wTXT.text = "\(club.wins!)"
+        cell.lTXT.text = "\(club.losses)"
+        cell.otlTXT.text = "\(club.otl)"
         
         return cell
         
@@ -66,19 +66,7 @@ class Top100CTRL: UITableViewController {
         var nav = UINavigationController()
         
         var vc = self.storyboard?.instantiateViewControllerWithIdentifier("club_detail") as! ClubDetailCTRL
-        
-        var c: Club = Club(json: club)
-        
-        c.name = club["clubname"].stringValue
-        c.id = club["clubId"].intValue
-        c.wins = club["wins"].stringValue.toInt()
-        c.losses = club["losses"].stringValue.toInt()
-        c.otl = club["ties"].stringValue.toInt()
-        c.division = 1
-        c.teamID = club["teamId"].intValue
-        c.points = club["rank"].stringValue.toInt()
-        
-        vc.club = c
+        vc.club = club
         
         self.navigationController?.pushViewController(vc, animated: true)
         
@@ -99,17 +87,27 @@ class Top100CTRL: UITableViewController {
                         
                         var json = JSON(data!)
                         
-                        var tmp: [JSON] = []
+                        var tmp: [Club] = []
                         
                         for (i,club) in json["raw"] {
                             
-                            tmp.append(club)
+                            let c = Club(id: club["clubId"].intValue)
+                            
+                            c.teamID = club["teamId"].intValue
+                            c.name = club["name"].stringValue
+                            c.rank = club["rank"].stringValue.toInt()
+                            c.wins = club["wins"].stringValue.toInt()
+                            c.losses = club["losses"].stringValue.toInt()
+                            c.otl = club["ties"].stringValue.toInt()
+                            c.setRegion(club["regionId"].intValue)
+                            
+                            tmp.append(c)
                             
                         }
                         
                         self.clubs = tmp
                         
-                        self.clubs.sort( {$0["rank"].stringValue.toInt() > $1["rank"].stringValue.toInt() } )
+                        self.clubs.sort({ $0.rank > $1.rank })
                         
                         self.tableView.reloadData()
                         

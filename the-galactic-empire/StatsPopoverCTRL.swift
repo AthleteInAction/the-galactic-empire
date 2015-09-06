@@ -16,6 +16,7 @@ class StatsPopoverCTRL: UITableViewController {
     var match: Match!
     
     var players: [JSON] = []
+    
     var pos: [String] = [
         "blank",
         "RD",
@@ -33,21 +34,39 @@ class StatsPopoverCTRL: UITableViewController {
         
         self.title = t
         
-        for (teamID,clubs) in match.body["players"] {
+        if match.awayPlayers == nil {
             
-            for (playerID,player) in clubs {
+            club.getRecent({ (s) -> Void in
                 
-                if id == teamID.toInt() {
+                if s {
                     
-                    players.append(player)
+                    self.setPlayers()
                     
                 }
                 
-            }
+            })
+            
+        } else {
+            
+            self.setPlayers()
             
         }
         
         self.tableView.reloadData()
+        
+    }
+    
+    func setPlayers(){
+        
+        if self.match.home.id == self.id {
+            
+            self.players = self.match.homePlayers!
+            
+        } else {
+            
+            self.players = self.match.awayPlayers!
+            
+        }
         
     }
 
@@ -66,13 +85,13 @@ class StatsPopoverCTRL: UITableViewController {
     
     override func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         
-        if id == match.homeID {
+        if id == match.home.id {
             
-            return "vs \(match.awayName)"
+            return "vs \(match.away.name!)"
             
         } else {
             
-            return "vs \(match.homeName)"
+            return "vs \(match.home.name!)"
             
         }
         
